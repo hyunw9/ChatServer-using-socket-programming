@@ -3,6 +3,7 @@ package org.example.View;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
 
 public class Output {
 
@@ -19,9 +20,13 @@ public class Output {
     output.flush();
   }
 
-  public void print(int s) throws IOException {
+  public void printCreatedThread(int s) throws IOException {
     output.write("메세지 작업 스레드 #" +s+"생성\n");
     output.flush();
   }
-}
 
+  public void printServerOpenedPort(InetSocketAddress inetSocketAddress) throws IOException {
+    output.write("Port 번호 "+ inetSocketAddress.getPort()+" 에서 서버 동작 중");
+    output.flush();
+  }
+}
