@@ -26,7 +26,7 @@ public class Output {
   }
 
   public void printServerOpenedPort(InetSocketAddress inetSocketAddress) throws IOException {
-    output.write("Port 번호 "+ inetSocketAddress.getPort()+" 에서 서버 동작 중");
+    output.write("Port 번호 "+ inetSocketAddress.getPort()+" 에서 서버 동작 중 \n");
     output.flush();
   }
 }
