@@ -1,3 +1,4 @@
+package org.example;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,3 +38,8 @@ public class ThreadPool {
     }
   }
 
+  public void sumbit(String taskMessage){
+    taskQueue.add(taskMessage);
+    workers.notify();
+  }
+}
