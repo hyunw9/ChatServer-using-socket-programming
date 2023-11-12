@@ -79,10 +79,15 @@ public class ServerController {
     client.configureBlocking(false);
     client.register(selector, SelectionKey.OP_READ);
     System.out.format("Accepted: %s%n", client.socket().getRemoteSocketAddress().toString());
+    InetSocketAddress userAddr = (InetSocketAddress) client.getRemoteAddress();
+    String initialUserName = "(" + userAddr.getHostName()+ " , "+ userAddr.getPort() +")";
+    User user = new User(initialUserName);
+    output.print(user.getName());
   }
 
   public static void readSocket(SelectionKey key) throws IOException, InterruptedException {
     ByteBuffer buf = ByteBuffer.allocate(80);
+    ByteBuffer buf = ByteBuffer.allocate(65536);
 
     SocketChannel socketChannel = (SocketChannel) key.channel();
     buf.clear();
