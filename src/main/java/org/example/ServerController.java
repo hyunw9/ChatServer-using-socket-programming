@@ -94,7 +94,25 @@ public class ServerController {
       buf.flip();
       String msg = StandardCharsets.UTF_8.decode(buf).toString();
       System.out.format("Message Received(%d): %s%n", byteRead, msg);
+      msg = msg.substring(msg.indexOf("{"), msg.lastIndexOf("}") + 1);
+      System.out.println(msg);
 
+      ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+      MessageTask task = mapper.readValue(msg, MessageTask.class);
+
+      if (task.getType().equals("CSName")) {
+        task.setData(task.getName());
+      } else if (task.getType().equals("CSJoinRoom")) {
+        task.setData(task.getRoomId());
+      } else if (task.getType().equals("CSChat")) {
+        task.setData(task.getText());
+      }else if(task.getType().equals("CSCreateRoom")){
+        task.setData(task.getTitle());
+      }
+      System.out.println(task.getData());
+
+      threadPool.submit(task);
       if (msg.equals("Done")) {
         throw new InterruptedException();
       }
