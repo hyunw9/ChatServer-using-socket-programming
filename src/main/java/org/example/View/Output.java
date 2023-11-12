@@ -29,4 +29,9 @@ public class Output {
     output.write("Port 번호 "+ inetSocketAddress.getPort()+" 에서 서버 동작 중 \n");
     output.flush();
   }
+
+  public void print(String line) throws IOException {
+    output.write(line);
+    output.flush();
+  }
 }
