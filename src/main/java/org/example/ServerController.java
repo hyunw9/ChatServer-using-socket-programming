@@ -1,5 +1,7 @@
 package org.example;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -8,16 +10,15 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import org.example.Handler.HandlerFunction;
 import org.example.Handler.HandlerMap;
+import org.example.Model.ChatRoomManager;
+import org.example.Model.MessageTask;
+import org.example.Model.Room;
+import org.example.Model.User;
 import org.example.View.Input;
 import org.example.View.Output;
+import org.example.Worker.ThreadPool;
 
 public class ServerController {
 
@@ -25,17 +26,18 @@ public class ServerController {
   private static final Output output = new Output();
   private static ThreadPool threadPool;
   private static HandlerMap handlerMap;
-  private static Set<SocketChannel> allClients;
+  private static Room chatRoom;
+  private static ChatRoomManager chatRoomManager;
+
 
   public static void startChatServer() throws IOException, InterruptedException {
 
     output.askThreadCount();
-    allClients = new HashSet<>();
-    handlerMap = HandlerMap.addInitialFuncAndCreateMap();
+    chatRoomManager = new ChatRoomManager();
+    handlerMap = HandlerMap.addInitialFuncAndCreateMap(chatRoomManager);
     threadPool = new ThreadPool(input.getInput(), handlerMap);
-    for (String s : handlerMap.getHandlerMap().keySet()) {
-      System.out.println(s);
-    }
+    threadPool.start();
+
 
     while (true) {
       Selector selector = Selector.open();
@@ -75,10 +77,8 @@ public class ServerController {
   private static void acceptSocket(Selector selector, SelectionKey key) throws IOException {
     ServerSocketChannel serverSock = (ServerSocketChannel) key.channel();
     SocketChannel client = serverSock.accept();
-    allClients.add(client);
     client.configureBlocking(false);
     client.register(selector, SelectionKey.OP_READ);
-    System.out.format("Accepted: %s%n", client.socket().getRemoteSocketAddress().toString());
     InetSocketAddress userAddr = (InetSocketAddress) client.getRemoteAddress();
     String initialUserName = "(" + userAddr.getHostName()+ " , "+ userAddr.getPort() +")";
     User user = new User(initialUserName);
@@ -86,7 +86,6 @@ public class ServerController {
   }
 
   public static void readSocket(SelectionKey key) throws IOException, InterruptedException {
-    ByteBuffer buf = ByteBuffer.allocate(80);
     ByteBuffer buf = ByteBuffer.allocate(65536);
 
     SocketChannel socketChannel = (SocketChannel) key.channel();
@@ -98,7 +97,6 @@ public class ServerController {
     } else {
       buf.flip();
       String msg = StandardCharsets.UTF_8.decode(buf).toString();
-      System.out.format("Message Received(%d): %s%n", byteRead, msg);
       msg = msg.substring(msg.indexOf("{"), msg.lastIndexOf("}") + 1);
       System.out.println(msg);
 
