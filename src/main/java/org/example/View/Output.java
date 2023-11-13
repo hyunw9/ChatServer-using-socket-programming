@@ -31,7 +31,7 @@ public class Output {
   }
 
   public void print(String line) throws IOException {
-    output.write(line);
+    output.write(line+ "\n");
     output.flush();
   }
 }
