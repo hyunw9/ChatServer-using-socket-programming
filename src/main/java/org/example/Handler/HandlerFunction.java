@@ -13,6 +13,26 @@ public class HandlerFunction {
   //채팅 이름 지정 요청 처리
   public static void on_cs_name(String message){
     System.out.println("/name");
+  public static void on_cs_name(MessageTask task) {
+    boolean userIn = chatRoomManager.checkUserInRoom(task.getClientSocket());
+
+    if (userIn) {
+      User user = chatRoomManager.findUserInfo(task.getClientSocket());
+      System.out.println(user.getName());
+      user.setName(task.getName());
+
+    } else {//유저가 방에 없으면
+      userManager.setUserName(task.getClientSocket(), task.getName());
+    }
+    String msg = "이름이" + task.getName() + " 으로 변경되었습니다.";
+    JsonMessage StoC = new SCSystemMessageRes(msg);
+
+    if (userIn) {
+      Room room = chatRoomManager.findRoomByUserSocket(task.getClientSocket());
+      chatRoomManager.broadcastMsgToRoom(room.getId(), StoC);
+    } else {
+      userManager.sendMessage(task.getClientSocket(), StoC);
+    }
   }
 
   //채팅 방 목록 요청 처리
