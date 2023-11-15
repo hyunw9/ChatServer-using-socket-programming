@@ -110,8 +110,21 @@ public class HandlerFunction {
   }
 
   //채팅 메세지 전송 요청 처리
-  public static void on_cs_chat(String message){
-    System.out.println("chat data");
+  //TODO 채팅방 생성 , 조인 이후 테스트할것
+  public static void on_cs_chat(MessageTask task) {
+    boolean userIn = chatRoomManager.checkUserInRoom(task.getClientSocket());
+
+    if (!userIn) {
+      String msg = "현재 대화방에 들어가 있지 않습니다.";
+      JsonMessage scSystemMessage = new SCSystemMessageRes(msg);
+      chatRoomManager.sendMessage(task.getClientSocket(), scSystemMessage);
+    } else {
+      Room room = chatRoomManager.findRoomByUserSocket(task.getClientSocket());
+      String msg = task.getText();
+      User user = chatRoomManager.findUserInfo(task.getClientSocket());
+      JsonMessage scChatRes = new SCChatRes(msg, user.getName());
+      chatRoomManager.broadcastMsgToRoom(room.getId(), scChatRes);
+    }
   }
 
   //채팅 서버 종료 요청 처리
