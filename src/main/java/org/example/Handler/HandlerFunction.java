@@ -67,9 +67,27 @@ public class HandlerFunction {
     }
   }
 
+
   //채팅 방 만들기 요청 처리
-  public static void on_cs_create(String message){
-    System.out.println("/create name");
+  public static void on_cs_create(MessageTask task) {
+    boolean userIn = chatRoomManager.checkUserInRoom(task.getClientSocket());
+
+    if (userIn) {//방 내부에서 방 생성할경우
+      JsonMessage SCSystemMessageRes = new SCSystemMessageRes("이미 방에 속한 유저입니다!");
+      chatRoomManager.sendMessage(task.getClientSocket(), SCSystemMessageRes);
+    } else {
+      //방에 속해있지 않으면
+      User user = userManager.findUser(task.getClientSocket())
+          .orElseThrow(NoSuchElementException::new);
+      userManager.removeUser(user.getSocketChannel());
+
+      Room newRoom = new Room(task.getTitle());
+      chatRoomManager.addUserToChatRoom(newRoom, user);
+
+      System.out.println("id: " + newRoom.getId() + " title: " + newRoom.getTitle() + " 방 생성");
+      JsonMessage SCSystemMessageRes = new SCSystemMessageRes(task.getTitle() + " 방을 생성했습니다.");
+      chatRoomManager.sendMessage(user.getSocketChannel(), SCSystemMessageRes);
+    }
   }
 
   //채팅 방 나가기 요청 처리
