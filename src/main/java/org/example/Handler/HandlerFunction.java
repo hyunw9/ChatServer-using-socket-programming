@@ -77,8 +77,7 @@ public class HandlerFunction {
       chatRoomManager.broadcastMsgToRoom(room.getId(), SCSystemMessage);
     }
   }
-
-
+  
   //채팅 방 만들기 요청 처리
   public static void on_cs_create(MessageTask task) {
     boolean userIn = chatRoomManager.checkUserInRoom(task.getClientSocket());
@@ -136,10 +135,5 @@ public class HandlerFunction {
       JsonMessage scChatRes = new SCChatRes(msg, user.getName());
       chatRoomManager.broadcastMsgToRoom(room.getId(), scChatRes);
     }
-  }
-
-  //채팅 서버 종료 요청 처리
-  public static void on_cs_shutdown(String s) {
-    System.out.println("/shutdown ");
   }
 }
