@@ -4,40 +4,35 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.example.Model.ChatRoomManager;
+import org.example.Model.Message.MessageTask;
+import org.example.Model.UserManager;
 
 public class HandlerMap {
 
-  private final Map<String, Consumer<String>>  handlerMap ;
-  private HandlerFunction handlerFunctions;
+  private final Map<String, Consumer<MessageTask>>  handlerMap ;
 
-
-  public HandlerMap(Map<String, Consumer<String>> handlerMap,HandlerFunction functions) {
+  public HandlerMap(Map<String, Consumer<MessageTask>> handlerMap,HandlerFunction functions) {
     this.handlerMap = handlerMap;
-    this.handlerFunctions = functions;
   }
 
-  public static HandlerMap addInitialFuncAndCreateMap(ChatRoomManager chatRoomManager){
-    Map<String, Consumer<String>>  handlerMap = new HashMap<>();
+  public static HandlerMap addInitialFuncAndCreateMap(ChatRoomManager chatRoomManager, UserManager userManager){
+    Map<String, Consumer<MessageTask>>  handlerMap = new HashMap<>();
     handlerMap.put("CSName",HandlerFunction::on_cs_name);
     handlerMap.put("CSRooms",HandlerFunction::on_cs_rooms);
     handlerMap.put("CSCreateRoom",HandlerFunction::on_cs_create);
     handlerMap.put("CSJoinRoom",HandlerFunction::on_cs_join);
     handlerMap.put("CSLeaveRoom",HandlerFunction::on_cs_leave);
     handlerMap.put("CSChat",HandlerFunction::on_cs_chat);
-    handlerMap.put("CSShutdown",HandlerFunction::on_cs_shutdown);
-    HandlerFunction handlerFunction = new HandlerFunction(chatRoomManager);
+    HandlerFunction handlerFunction = new HandlerFunction(chatRoomManager,userManager);
     return new HandlerMap(handlerMap,handlerFunction);
   }
 
-  public void put(String name, Consumer<String> function){
+  public void put(String name, Consumer<MessageTask> function){
     handlerMap.put(name, function);
   }
 
-  public Consumer<String> getFunction(String name) {
+  public Consumer<MessageTask> getFunction(String name) {
     return handlerMap.get(name);
   }
 
-  public Map<String, Consumer<String>> getHandlerMap() {
-    return handlerMap;
-  }
 }
