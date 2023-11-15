@@ -37,7 +37,11 @@ public class HandlerFunction {
 
   //채팅 방 목록 요청 처리
   public static void on_cs_rooms(String message){
-    System.out.println("/rooms");
+  //TODO Create,Join 만든 후 구현할것
+  public static void on_cs_rooms(MessageTask task) {
+    List<SCRoom> roomList = chatRoomManager.getRoomInfoList();
+    JsonMessage SCRoomListRes = new SCRoomListRes(roomList);
+    userManager.sendMessage(task.getClientSocket(),SCRoomListRes);
   }
 
   //채팅 방 목록 요청 처리
