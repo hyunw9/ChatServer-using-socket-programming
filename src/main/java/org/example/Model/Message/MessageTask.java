@@ -1,4 +1,6 @@
-package org.example.Model;
+package org.example.Model.Message;
+
+import java.nio.channels.SocketChannel;
 
 public class MessageTask {
 
@@ -8,8 +10,17 @@ public class MessageTask {
   private String roomId;
   private String text;
   private String title;
+  private SocketChannel clientSocket;
+
+  public void setClientSocket(SocketChannel clientSocket) {
+    this.clientSocket = clientSocket;
+  }
 
   public MessageTask() {
+  }
+
+  public SocketChannel getClientSocket() {
+    return clientSocket;
   }
 
   public String getType() {
