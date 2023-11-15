@@ -36,7 +36,6 @@ public class HandlerFunction {
   }
 
   //채팅 방 목록 요청 처리
-  public static void on_cs_rooms(String message){
   //TODO Create,Join 만든 후 구현할것
   public static void on_cs_rooms(MessageTask task) {
     List<SCRoom> roomList = chatRoomManager.getRoomInfoList();
@@ -44,9 +43,28 @@ public class HandlerFunction {
     userManager.sendMessage(task.getClientSocket(),SCRoomListRes);
   }
 
-  //채팅 방 목록 요청 처리
-  public static void on_cs_join(String message){
-    System.out.println("/join id");
+  //채팅 방 참여 요청 처리
+  public static void on_cs_join(MessageTask task) {
+    int roomId = Integer.parseInt(task.getRoomId());
+    boolean userIn = chatRoomManager.checkUserInRoom(task.getClientSocket());
+    boolean userIsNotInRoom = chatRoomManager.isRoom(roomId);
+
+    if (userIn) { //이미 유저가 방에 속한 경우
+      JsonMessage SCSystemMessage = new SCSystemMessageRes("이미 방에 속한 유저입니다! ");
+      chatRoomManager.sendMessage(task.getClientSocket(), SCSystemMessage);
+    } else if (!userIsNotInRoom) { //유저가 방에 속해있지 않은 경우
+      JsonMessage SCSystemMessage = new SCSystemMessageRes("존재하지 않는 방입니다.");
+      userManager.sendMessage(task.getClientSocket(), SCSystemMessage);
+    } else {
+      User user = userManager.findUser(task.getClientSocket())
+          .orElseThrow(NoSuchElementException::new);
+
+      userManager.removeUser(user.getSocketChannel());
+      Room room = chatRoomManager.findRoomByRoomId(roomId).orElseThrow(NoSuchElementException::new);
+      chatRoomManager.addUserToChatRoom(room, user);
+      JsonMessage SCSystemMessage = new SCSystemMessageRes(user.getName() + " 님이 채팅방에 입장하셨습니다. ");
+      chatRoomManager.broadcastMsgToRoom(room.getId(), SCSystemMessage);
+    }
   }
 
   //채팅 방 만들기 요청 처리
