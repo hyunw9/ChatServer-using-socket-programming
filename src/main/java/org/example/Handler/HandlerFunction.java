@@ -91,8 +91,22 @@ public class HandlerFunction {
   }
 
   //채팅 방 나가기 요청 처리
-  public static void on_cs_leave(String message){
-    System.out.println("/leave id");
+  public static void on_cs_leave(MessageTask task) {
+    boolean userIn = chatRoomManager.checkUserInRoom(task.getClientSocket());
+
+    if (!userIn) {//방이 없다면
+      JsonMessage SCSystemMessageRes = new SCSystemMessageRes("방에 속해있지 않습니다.");
+      userManager.sendMessage(task.getClientSocket(), SCSystemMessageRes);
+    } else {//방에 속해있다면
+      Room userRoom = chatRoomManager.findRoomByUserSocket(task.getClientSocket());
+      User user = chatRoomManager.findUserInfo(task.getClientSocket());
+      chatRoomManager.deleteUser(userRoom, user.getSocketChannel());
+      userManager.addUser(user);
+      JsonMessage SCSystemMessageRes = new SCSystemMessageRes(
+          userRoom.getTitle() + " 방에서 나갔습니다. ");
+      chatRoomManager.broadcastMsgToRoom(userRoom.getId(), SCSystemMessageRes);
+      userManager.sendMessage(user.getSocketChannel(), SCSystemMessageRes);
+    }
   }
 
   //채팅 메세지 전송 요청 처리
