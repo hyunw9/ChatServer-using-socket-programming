@@ -1,18 +1,29 @@
 package org.example.Handler;
 
+import java.util.List;
+import java.util.NoSuchElementException;
 import org.example.Model.ChatRoomManager;
+import org.example.Model.Res.JsonMessage;
+import org.example.Model.Res.SCChatRes;
+import org.example.Model.Res.SCRoom;
+import org.example.Model.Res.SCRoomListRes;
+import org.example.Model.Res.SCSystemMessageRes;
+import org.example.Model.Message.MessageTask;
+import org.example.Model.Room;
+import org.example.Model.User;
+import org.example.Model.UserManager;
 
 public class HandlerFunction {
 
-  private final ChatRoomManager chatRoomManager;
+  private static ChatRoomManager chatRoomManager;
+  private static UserManager userManager;
 
-  public HandlerFunction(ChatRoomManager chatRoomManager) {
-    this.chatRoomManager = chatRoomManager;
+  public HandlerFunction(ChatRoomManager chatRoomManager, UserManager userManager) {
+    HandlerFunction.chatRoomManager = chatRoomManager;
+    HandlerFunction.userManager = userManager;
   }
 
   //채팅 이름 지정 요청 처리
-  public static void on_cs_name(String message){
-    System.out.println("/name");
   public static void on_cs_name(MessageTask task) {
     boolean userIn = chatRoomManager.checkUserInRoom(task.getClientSocket());
 
