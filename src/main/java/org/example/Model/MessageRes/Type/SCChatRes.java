@@ -33,3 +33,13 @@ public class SCChatRes implements MessageRes {
   public String getMember() {
     return member;
   }
+
+  @Override
+  public ByteBuffer accept(MessageSerializer serializer) {
+    try {
+      return serializer.serialize(this);
+    } catch (InvalidProtocolBufferException e) {
+      throw new RuntimeException(e);
+    }
+  }
+}
