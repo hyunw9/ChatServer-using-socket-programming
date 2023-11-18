@@ -56,3 +56,13 @@ public class ChatRoomManager {
     }
     return list;
   }
+
+  public Room findRoomByUserSocket(SocketChannel userSocket) {
+    return roomManager.entrySet().stream()
+        .filter(entry -> entry.getValue().stream()
+            .anyMatch(user -> user.getSocketChannel() == userSocket))
+        .map(Map.Entry::getKey)
+        .findFirst()
+        .orElse(null);
+  }
+
