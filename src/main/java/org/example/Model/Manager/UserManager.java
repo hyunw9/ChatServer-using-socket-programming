@@ -48,3 +48,7 @@ public class UserManager {
     this.userManager.add(user);
   }
 
+  public void removeUser(SocketChannel user) {
+    this.userManager.remove(user);
+  }
+
