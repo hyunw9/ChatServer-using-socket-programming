@@ -106,3 +106,15 @@ public class ChatRoomManager {
     roomManager.remove(room);
   }
 
+  //메세지 전송
+  public void sendMessage(SocketChannel userSocket, MessageRes messageRes) {
+
+    try {
+      ByteBuffer byteBuffer = messageRes.accept(serializer);
+      while (byteBuffer.hasRemaining()) {
+        System.out.println("sent: "+ userSocket.write(byteBuffer));
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
