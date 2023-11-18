@@ -98,3 +98,7 @@ public class ChatRoomManager {
     roomManager.get(room).removeIf(user -> user.getSocketChannel() == socketChannel);
   }
 
+  public boolean checkRoomIsEmpty(Room room){
+    return roomManager.get(room).size() == 0;
+  }
+  
