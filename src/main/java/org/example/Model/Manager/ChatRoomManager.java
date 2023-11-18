@@ -94,3 +94,7 @@ public class ChatRoomManager {
     userList.add(user);
   }
 
+  public void deleteUser(Room room, SocketChannel socketChannel) {
+    roomManager.get(room).removeIf(user -> user.getSocketChannel() == socketChannel);
+  }
+
