@@ -9,9 +9,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.example.Handler.HandlerMap;
-import org.example.Model.MessageTask;
+import org.example.Model.Message.MessageTask;
 import org.example.View.Output;
-import org.example.Worker.Worker;
 
 public class ThreadPool {
 
@@ -32,7 +31,7 @@ public class ThreadPool {
     handlerMap = handlerMapArg;
 
     for (int i = 0; i < workerCount; i++) {
-      Worker worker = new Worker(taskQueue,handlerMap,lock,condition);
+      Worker worker = new Worker(taskQueue, handlerMap, lock, condition);
       Thread workerThread = new Thread(worker);
       workerThreads.add(workerThread);
     }
@@ -40,19 +39,38 @@ public class ThreadPool {
 
   public void start() throws IOException {
     for (Thread workerThread : workerThreads) {
+      workerThread.setUncaughtExceptionHandler((thread, exception) -> {
+        try {
+          output.printError("Worker " + thread.getId() + "가 예외 발생, " + exception.getMessage());
+          Worker worker = new Worker(taskQueue, handlerMap, lock, condition);
+          Thread newWorkerThread = new Thread(worker);
+          workerThreads.add(newWorkerThread);
+          output.print("재시작 됨");
+          newWorkerThread.start();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
       workerThread.start();
       output.printCreatedThread(workerThreads.indexOf(workerThread));
-
     }
   }
 
-  public void submit(MessageTask messageTask){
-    lock.lock();
-    try {
-      taskQueue.add(messageTask);
-      condition.signal();
-    } finally {
-      lock.unlock();
+    public void submit (MessageTask messageTask){
+    //동시에 여러 worker가 접근하여 task를 제출할 수 있으므로
+      // lock,conditon 을 이용해 raceCondition을 관리합니다.
+      lock.lock();
+      try {
+        taskQueue.add(messageTask);
+        condition.signal();
+      } finally {
+        lock.unlock();
+      }
     }
+
+    public void shutdown(){
+      workerThreads.forEach(Thread::interrupt);
+    }
+
   }
-}
+
