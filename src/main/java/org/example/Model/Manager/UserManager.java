@@ -26,3 +26,12 @@ public class UserManager {
     return new UserManager(userManager,serializer);
   }
 
+  public void setUserName(SocketChannel clientSocket, String name) {
+    for (User user : userManager) {
+      if (user.getSocketChannel().equals(clientSocket) ) {
+        user.setName(name);
+        System.out.println("이름 변경 완료: "+name);
+      }
+    }
+  }
+
