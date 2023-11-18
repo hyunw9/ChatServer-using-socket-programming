@@ -102,3 +102,7 @@ public class ChatRoomManager {
     return roomManager.get(room).size() == 0;
   }
   
+  public void deleteRoom(Room room) {
+    roomManager.remove(room);
+  }
+
