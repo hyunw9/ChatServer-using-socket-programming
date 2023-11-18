@@ -44,3 +44,7 @@ public class UserManager {
     return Optional.empty();
   }
 
+  public void addUser(User user) {
+    this.userManager.add(user);
+  }
+
