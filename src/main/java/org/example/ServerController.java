@@ -1,46 +1,55 @@
 package org.example;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.example.Handler.HandlerMap;
-import org.example.Model.ChatRoomManager;
-import org.example.Model.MessageTask;
-import org.example.Model.Room;
+import org.example.Model.Manager.ChatRoomManager;
+import org.example.Model.Message.Json.JsonMessageProcessor;
+import org.example.Model.Message.MessageProcessor;
+import org.example.Model.Message.MessageTask;
+import org.example.Model.Message.Protobuf.ProtobufMessageProcessor;
+import org.example.Model.MessageRes.Serializer.JsonSerializer;
+import org.example.Model.MessageRes.Serializer.MessageSerializer;
+import org.example.Model.MessageRes.Serializer.ProtobufSerializer;
 import org.example.Model.User;
+import org.example.Model.Manager.UserManager;
 import org.example.View.Input;
 import org.example.View.Output;
 import org.example.Worker.ThreadPool;
 
 public class ServerController {
 
+  private static MessageProcessor messageProcessor;
+
   private static final Input input = new Input();
-  private static final Output output = new Output();
+  public static final Output output = new Output();
+
   private static ThreadPool threadPool;
   private static HandlerMap handlerMap;
-  private static Room chatRoom;
   private static ChatRoomManager chatRoomManager;
+  private static UserManager userManager;
+  private static Lock lock;
 
+  private static Selector selector;
+  private static MessageSerializer serializer;
 
-  public static void startChatServer() throws IOException, InterruptedException {
+  public static void startChatServer() throws IOException {
 
-    output.askThreadCount();
-    chatRoomManager = new ChatRoomManager();
-    handlerMap = HandlerMap.addInitialFuncAndCreateMap(chatRoomManager);
-    threadPool = new ThreadPool(input.getInput(), handlerMap);
+    initMessageProcessor();
+
+    initThreadPool();
+
     threadPool.start();
 
-
     while (true) {
-      Selector selector = Selector.open();
+      selector = Selector.open();
 
       ServerSocketChannel server = ServerSocketChannel.open();
       InetSocketAddress socketAddress = new InetSocketAddress(9142);
@@ -114,46 +123,26 @@ public class ServerController {
     client.configureBlocking(false);
     client.register(selector, SelectionKey.OP_READ);
     InetSocketAddress userAddr = (InetSocketAddress) client.getRemoteAddress();
-    String initialUserName = "(" + userAddr.getHostName()+ " , "+ userAddr.getPort() +")";
-    User user = new User(initialUserName);
-    output.print(user.getName());
+
+    //유저가 연결을 시도하면, IP, Port로 유저의 이름 지정 후 UserManager에 추가합니다.
+    String initialUserName = getInitialUserNameBuilder(userAddr);
+    User user = new User(initialUserName,client,messageProcessor);
+    userManager.addUser(user);
+
+    output.print("새로운 유저 접속: " + user.getName());
   }
 
-  public static void readSocket(SelectionKey key) throws IOException, InterruptedException {
-    ByteBuffer buf = ByteBuffer.allocate(65536);
 
-    SocketChannel socketChannel = (SocketChannel) key.channel();
-    buf.clear();
-    int byteRead = socketChannel.read(buf);
+  public static void readSocket(SelectionKey key) throws IOException {
+    SocketChannel socketChannel = (SocketChannel)key.channel();
 
-    if (byteRead == -1) {
-      throw new InterruptedException();
-    } else {
-      buf.flip();
-      String msg = StandardCharsets.UTF_8.decode(buf).toString();
-      msg = msg.substring(msg.indexOf("{"), msg.lastIndexOf("}") + 1);
-      System.out.println(msg);
-
-      ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-      MessageTask task = mapper.readValue(msg, MessageTask.class);
-
-      if (task.getType().equals("CSName")) {
-        task.setData(task.getName());
-      } else if (task.getType().equals("CSJoinRoom")) {
-        task.setData(task.getRoomId());
-      } else if (task.getType().equals("CSChat")) {
-        task.setData(task.getText());
-      }else if(task.getType().equals("CSCreateRoom")){
-        task.setData(task.getTitle());
-      }
-      System.out.println(task.getData());
-
+    //읽기 가능한 상태가 된다면, messageProcessor의 구현체가 메세지를 읽어서 처리합니다.
+    MessageTask task = messageProcessor.processMessage(socketChannel);
+    if(task.getType().equals("CSShutdown")){
+      shutdownServer();
+    }else {
+      //threadPool에 Task를 제출합니다.
       threadPool.submit(task);
-      if (msg.equals("Done")) {
-        throw new InterruptedException();
-      }
     }
   }
-}
 
