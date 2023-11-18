@@ -52,3 +52,15 @@ public class UserManager {
     this.userManager.remove(user);
   }
 
+  public void sendMessage(SocketChannel userSocket, MessageRes messageRes) {
+    try {
+      ByteBuffer byteBuffer = messageRes.accept(serializer);
+      while (byteBuffer.hasRemaining()) {
+        System.out.println("sent: "+userSocket.write(byteBuffer));
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+
