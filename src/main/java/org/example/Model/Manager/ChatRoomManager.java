@@ -66,3 +66,12 @@ public class ChatRoomManager {
         .orElse(null);
   }
 
+  public Optional<Room> findRoomByRoomId(int roomId) {
+    for (Room room : roomManager.keySet()) {
+      if (room.getId() == roomId) {
+        return Optional.of(room);
+      }
+    }
+    return Optional.empty();
+  }
+
