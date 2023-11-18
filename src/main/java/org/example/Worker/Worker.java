@@ -4,7 +4,7 @@ import java.util.Queue;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import org.example.Handler.HandlerMap;
-import org.example.Model.MessageTask;
+import org.example.Model.Message.MessageTask;
 
 public class Worker implements Runnable {
 
@@ -27,27 +27,23 @@ public class Worker implements Runnable {
       try {
         while (taskQueue.isEmpty()) {
           try {
+            //lock 획득 시 까지 wait
             condition.await();
           } catch (InterruptedException e) {
             return;
           }
         }
-
+        //lock 획득이 가능하다면 wake 후 queue에서 task를 가져온 후 , handler에 넘겨 처리합니다.
+        System.out.println("thread wake up");
         MessageTask task = taskQueue.poll();
-        handlerMap.getFunction(task.getType()).accept(task.getData());
+        handlerMap.getFunction(task.getType()).accept(task);
 
       } catch (Exception e) {
         e.printStackTrace();
-
-        //스레드를 다시 생성할 수도 있지만, 그렇게 된다면 스레드가 스레드풀을 알아야 한다.
-        //관리성에서는 용이해지지만 결합도가 증가하는 단점이 있음.
       } finally {
         mutex.unlock();
       }
     }
   }
-
-
-
 }
 

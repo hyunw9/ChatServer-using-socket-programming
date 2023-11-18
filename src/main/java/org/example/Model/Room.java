@@ -6,7 +6,7 @@ public class Room {
 
   private static final AtomicInteger idGenerator = new AtomicInteger(1);
 
-  private int id;
+  private final int id;
   private String title;
 
   public Room(String title) {
@@ -22,15 +22,7 @@ public class Room {
     return id;
   }
 
-  public void setId(int id) {
-    this.id = id;
-  }
-
   public String getTitle() {
     return title;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
   }
 }
