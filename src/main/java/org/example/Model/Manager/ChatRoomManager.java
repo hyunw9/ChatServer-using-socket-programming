@@ -136,3 +136,18 @@ public class ChatRoomManager {
         .anyMatch(room -> room.getId() == roomId);
   }
 
+  //방 정보를 List로 변환
+  public List<SCRoom> getRoomInfoList() {
+    List<SCRoom> roomList = new ArrayList<>();
+    for (Entry<Room, List<User>> roomListEntry : roomManager.entrySet()) {
+      String roomId = String.valueOf(roomListEntry.getKey().getId());
+      String title = roomListEntry.getKey().getTitle();
+      List<String> userNameList = roomListEntry.getValue()
+          .stream()
+          .map(User::getName)
+          .collect(Collectors.toList());
+      roomList.add(new SCRoom(roomId, title, userNameList));
+    }
+    return roomList;
+  }
+}
