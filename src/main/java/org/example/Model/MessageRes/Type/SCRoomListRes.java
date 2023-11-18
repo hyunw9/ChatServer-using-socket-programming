@@ -31,3 +31,8 @@ public class SCRoomListRes implements MessageRes {
     return type;
   }
 
+  @Override
+  public ByteBuffer accept(MessageSerializer serializer) {
+    return serializer.serialize(this);
+  }
+}
