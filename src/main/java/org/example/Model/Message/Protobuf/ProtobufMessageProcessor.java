@@ -54,3 +54,30 @@ public class ProtobufMessageProcessor implements MessageProcessor {
     return size;
   }
 
+  @Override
+  public MessageTask processMessage(SocketChannel socketChannel) throws IOException {
+    short length = getMessageSize(socketChannel);
+    ByteBuffer bytebuffer = ByteBuffer.allocate(length);
+    int bytesRead = socketChannel.read(bytebuffer);  //type을 읽는다.
+    if (bytesRead == length) {
+
+      bytebuffer.flip();
+      Type type = Type.parseFrom(bytebuffer.array());
+      TypeProcessor typeProcessor = processors.get(type.getType()); //타입에 맞는 프로세서 생성
+
+      length = getMessageSize(socketChannel); //다음 2바이트를 읽어 길이를 확인한다.
+      bytebuffer = ByteBuffer.allocate(length);
+      bytesRead = socketChannel.read(bytebuffer);
+      bytebuffer.flip();
+
+      MessageTask task = typeProcessor.processType(type, bytebuffer); //Message로 변환
+      task.setClientSocket(socketChannel);
+
+      return task;
+    } else {
+      System.out.println("원하는 만큼 못읽음");
+    }
+
+    return null;
+  }
+}
