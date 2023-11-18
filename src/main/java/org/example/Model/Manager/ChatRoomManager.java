@@ -83,3 +83,9 @@ public class ChatRoomManager {
         .orElseThrow();
   }
 
+  public boolean checkUserInRoom(SocketChannel clientSocket) {
+    return roomManager.values().stream()
+        .flatMap(List::stream)
+        .anyMatch(user -> user.getSocketChannel() == clientSocket);
+  }
+
