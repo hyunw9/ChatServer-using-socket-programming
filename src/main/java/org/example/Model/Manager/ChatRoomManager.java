@@ -128,3 +128,11 @@ public class ChatRoomManager {
       e.printStackTrace();
     }
   }
+
+  //방이 존재하는지 확인
+  public boolean isRoom(int roomId) {
+    return roomManager.keySet()
+        .stream()
+        .anyMatch(room -> room.getId() == roomId);
+  }
+
