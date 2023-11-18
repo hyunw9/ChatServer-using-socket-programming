@@ -46,3 +46,13 @@ public class ChatRoomManager {
     this.lock = lock;
     this.condition = lock.newCondition();
   }
+
+  public List<User> getUserListById(int roomId) {
+    List<User> list = null;
+    for (Room room : roomManager.keySet()) {
+      if (room.getId() == roomId) {
+        list = roomManager.get(room);
+      }
+    }
+    return list;
+  }
