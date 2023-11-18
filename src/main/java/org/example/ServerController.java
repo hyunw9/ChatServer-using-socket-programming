@@ -146,3 +146,16 @@ public class ServerController {
     }
   }
 
+  private static String getInitialUserNameBuilder(InetSocketAddress userAddr) {
+    return  "(" + userAddr.getHostName() + " , " + userAddr.getPort() + ")";
+  }
+
+  public static void shutdownServer() throws IOException {
+    threadPool.shutdown();
+    for (SelectionKey key : selector.keys()) {
+      key.channel().close();
+    }
+    selector.close();
+    return;
+  }
+}
