@@ -25,3 +25,8 @@ public class SCSystemMessageRes implements MessageRes {
     return text;
   }
 
+  @Override
+  public ByteBuffer accept(MessageSerializer serializer) {
+    return serializer.serialize(this);
+  }
+}
