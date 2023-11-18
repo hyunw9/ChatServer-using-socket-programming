@@ -35,3 +35,12 @@ public class UserManager {
     }
   }
 
+  public Optional<User> findUser(SocketChannel clientSocket){
+    for (User user : userManager) {
+      if(user.getSocketChannel() == clientSocket) {
+        return Optional.of(user);
+      }
+    }
+    return Optional.empty();
+  }
+
