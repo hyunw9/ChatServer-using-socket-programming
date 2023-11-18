@@ -38,3 +38,11 @@ public class ChatRoomManager {
     return instance;
   }
 
+  public void setSerializer(MessageSerializer serializer) {
+    this.serializer = serializer;
+  }
+
+  public void setLock(Lock lock) {
+    this.lock = lock;
+    this.condition = lock.newCondition();
+  }
