@@ -75,3 +75,11 @@ public class ChatRoomManager {
     return Optional.empty();
   }
 
+  public User findUser(SocketChannel clientSocket) {
+    return roomManager.values().stream()
+        .flatMap(List::stream)
+        .filter(user -> user.getSocketChannel() == clientSocket)
+        .findFirst()
+        .orElseThrow();
+  }
+
