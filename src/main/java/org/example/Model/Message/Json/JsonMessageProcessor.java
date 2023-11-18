@@ -35,3 +35,38 @@ public class JsonMessageProcessor implements MessageProcessor {
     return size;
   }
 
+  @Override
+  public MessageTask processMessage(SocketChannel socketChannel) throws IOException {
+
+    //알아낸 크기만큼 Read 합니다.
+    short size = getMessageSize(socketChannel);
+    ByteBuffer buf = ByteBuffer.allocate(size);
+    int bytesRead = socketChannel.read(buf);
+
+    buf.flip();
+    String msg = StandardCharsets.UTF_8.decode(buf).toString();
+
+    msg = msg.substring(msg.indexOf("{"), msg.lastIndexOf("}") + 1);
+    output.print(msg);
+
+    ObjectMapper mapper = new ObjectMapper().configure(
+        DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    //Message의 Type 별로 내부 데이터를 설정하고 반환합니다.
+    MessageTask task = mapper.readValue(msg, MessageTask.class);
+    task.setClientSocket(socketChannel);
+    if (task.getType().equals("CSName")) {
+      task.setData(task.getName());
+    } else if (task.getType().equals("CSJoinRoom")) {
+      task.setData(task.getRoomId());
+    } else if (task.getType().equals("CSChat")) {
+      task.setData(task.getText());
+    } else if (task.getType().equals("CSCreateRoom")) {
+      task.setData(task.getTitle());
+    } else if (task.getType().equals("CSShutdown")) {
+      shutdownServer();
+    }
+    return task;
+  }
+
+}
