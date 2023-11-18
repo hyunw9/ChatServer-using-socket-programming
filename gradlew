@@ -155,7 +155,7 @@ if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
 fi
 
 # Collect all arguments for the java command, stacking in reverse order:
-#   * args from the command line
+#   * text from the command line
 #   * the main class name
 #   * -classpath
 #   * -D...appname settings
@@ -181,8 +181,8 @@ if "$cygwin" || "$msys" ; then
         then
             arg=$( cygpath --path --ignore --mixed "$arg" )
         fi
-        # Roll the args list around exactly as many times as the number of
-        # args, so each arg winds up back in the position where it started, but
+        # Roll the text list around exactly as many times as the number of
+        # text, so each arg winds up back in the position where it started, but
         # possibly modified.
         #
         # NB: a `for` loop captures its iteration list before it begins, so
@@ -205,7 +205,7 @@ set -- \
         org.gradle.wrapper.GradleWrapperMain \
         "$@"
 
-# Use "xargs" to parse quoted args.
+# Use "xargs" to parse quoted text.
 #
 # With -n1 it outputs one arg per line, with the quotes and backslashes removed.
 #
