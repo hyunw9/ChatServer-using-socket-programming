@@ -74,6 +74,40 @@ public class ServerController {
     }
   }
 
+  private static void initMessageProcessor() throws IOException {
+    output.print("메세지 타입을 입력하세요. json or protobuf: ");
+    String format = input.getInput();
+    lock = new ReentrantLock();
+    if (format.equals("protobuf")){
+
+      messageProcessor = new ProtobufMessageProcessor();
+      serializer = new ProtobufSerializer();
+      chatRoomManager = ChatRoomManager.getInstance();
+      chatRoomManager.setSerializer(serializer);
+      userManager = UserManager.createUserManager(serializer);
+
+      output.print("protobuf를 처리하는 서버 생성");
+    }else if(format.equals("json")){
+      messageProcessor = new JsonMessageProcessor();
+      serializer = new JsonSerializer();
+      chatRoomManager = ChatRoomManager.getInstance();
+      chatRoomManager.setSerializer(serializer);
+      userManager = UserManager.createUserManager(serializer);
+
+      output.print("JSON 처리하는 서버 생성");
+
+    }else{
+      throw new IllegalArgumentException("알 수 없는 메세지 형식 : "+ format);
+    }
+  }
+
+  private static void initThreadPool() throws IOException {
+    output.askThreadCount();
+    chatRoomManager.setLock(lock);
+    handlerMap = HandlerMap.addInitialFuncAndCreateMap(chatRoomManager, userManager);
+    threadPool = new ThreadPool(input.getInput(), handlerMap);
+  }
+
   private static void acceptSocket(Selector selector, SelectionKey key) throws IOException {
     ServerSocketChannel serverSock = (ServerSocketChannel) key.channel();
     SocketChannel client = serverSock.accept();
