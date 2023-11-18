@@ -89,3 +89,8 @@ public class ChatRoomManager {
         .anyMatch(user -> user.getSocketChannel() == clientSocket);
   }
 
+  public void addUserToChatRoom(Room room, User user) {
+    List<User> userList = roomManager.computeIfAbsent(room, k -> new ArrayList<>());
+    userList.add(user);
+  }
+
