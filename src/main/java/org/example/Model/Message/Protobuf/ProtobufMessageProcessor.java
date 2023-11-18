@@ -32,3 +32,25 @@ public class ProtobufMessageProcessor implements MessageProcessor {
     processors.put(MessageType.CS_SHUTDOWN, new CSShutdown());
   }
 
+  public static short getMessageSize(SocketChannel socketChannel) throws IOException {
+    short size = 0;
+    ByteBuffer byteBuffer = ByteBuffer.allocate(2);
+    int bytesRead = socketChannel.read(byteBuffer);
+    byteBuffer.flip();
+    if (bytesRead == 2) {
+      size = byteBuffer.getShort();
+    }
+
+    try {
+      if (bytesRead == -1) {
+        throw new InterruptedException();
+
+      }
+    } catch (InterruptedException e) {
+      System.out.println("올바르지 않은 입력, 스레드 인터럽트 발생, 클라이언트 연결 종료");
+      socketChannel.close();
+
+    }
+    return size;
+  }
+
