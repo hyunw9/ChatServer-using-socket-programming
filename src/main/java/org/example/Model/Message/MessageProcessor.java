@@ -1,9 +1,8 @@
 package org.example.Model.Message;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 public interface MessageProcessor {
-  MessageTask processMessage(ByteBuffer buf) throws IOException;
-  int getByteSize();
+  MessageTask processMessage(SocketChannel socketChannel) throws IOException;
 }
