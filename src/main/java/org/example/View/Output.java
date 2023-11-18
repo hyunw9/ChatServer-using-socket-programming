@@ -34,4 +34,9 @@ public class Output {
     output.write(line+ "\n");
     output.flush();
   }
+
+  public void printError(String line) throws IOException{
+    output.write(line+"\n");
+    output.flush();
+  }
 }

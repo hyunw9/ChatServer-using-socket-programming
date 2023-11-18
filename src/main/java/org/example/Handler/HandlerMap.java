@@ -3,9 +3,9 @@ package org.example.Handler;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import org.example.Model.ChatRoomManager;
+import org.example.Model.Manager.ChatRoomManager;
 import org.example.Model.Message.MessageTask;
-import org.example.Model.UserManager;
+import org.example.Model.Manager.UserManager;
 
 public class HandlerMap {
 
