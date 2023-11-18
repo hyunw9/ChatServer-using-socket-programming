@@ -106,6 +106,16 @@ public class ChatRoomManager {
     roomManager.remove(room);
   }
 
+  //방의 유저들에게 메세지 전체 방송
+  public void broadcastMsgToRoom(int roomId, MessageRes messageRes) {
+    List<User> userList = instance.getUserListById(roomId);
+    if (userList != null) {
+      userList.forEach(user -> sendMessage(user.getSocketChannel(), messageRes));
+    } else {
+      System.out.println("NULL이다 멍청아 ");
+    }
+  }
+
   //메세지 전송
   public void sendMessage(SocketChannel userSocket, MessageRes messageRes) {
 
