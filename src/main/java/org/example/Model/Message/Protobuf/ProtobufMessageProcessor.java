@@ -5,6 +5,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.example.Model.Message.MessageProcessor;
 import org.example.Model.Message.MessageTask;
 import org.example.Model.Message.Protobuf.MessageProto.Type;
@@ -21,6 +23,7 @@ import org.example.Model.Message.Protobuf.type.TypeProcessor;
 public class ProtobufMessageProcessor implements MessageProcessor {
 
   private static final Map<MessageType, TypeProcessor> processors = new HashMap<>();
+  private final Lock lock = new ReentrantLock();
 
   public ProtobufMessageProcessor() {
     processors.put(MessageType.CS_NAME, new CSName());
@@ -56,28 +59,42 @@ public class ProtobufMessageProcessor implements MessageProcessor {
 
   @Override
   public MessageTask processMessage(SocketChannel socketChannel) throws IOException {
-    short length = getMessageSize(socketChannel);
-    ByteBuffer bytebuffer = ByteBuffer.allocate(length);
-    int bytesRead = socketChannel.read(bytebuffer);  //type을 읽는다.
+    int bytesRead = 0;
+    short length = 0;
+    ByteBuffer byteBuffer;
+
+    //유저 2명이 동시에 메세지를 보냈을 때, type 뒤에 text 가 아닌,
+    // 다른 유저의 type 이 읽히는 것을 방지하기 위하여 동기화 처리합니다.
+    lock.lock();
+    try {
+      length = getMessageSize(socketChannel);
+      byteBuffer = ByteBuffer.allocate(length);
+      bytesRead = socketChannel.read(byteBuffer);  //type을 읽는다.
+    } finally {
+      lock.unlock();
+    }
+
     if (bytesRead == length) {
 
-      bytebuffer.flip();
-      Type type = Type.parseFrom(bytebuffer.array());
+      byteBuffer.flip();
+      Type type = Type.parseFrom(byteBuffer.array());
       TypeProcessor typeProcessor = processors.get(type.getType()); //타입에 맞는 프로세서 생성
 
-      length = getMessageSize(socketChannel); //다음 2바이트를 읽어 길이를 확인한다.
-      bytebuffer = ByteBuffer.allocate(length);
-      bytesRead = socketChannel.read(bytebuffer);
-      bytebuffer.flip();
-
-      MessageTask task = typeProcessor.processType(type, bytebuffer); //Message로 변환
+      lock.lock();
+      try {
+        length = getMessageSize(socketChannel); //다음 2바이트를 읽어 길이를 확인한다.
+        byteBuffer = ByteBuffer.allocate(length);
+        bytesRead = socketChannel.read(byteBuffer);
+      } finally {
+        lock.unlock();
+      }
+      byteBuffer.flip();
+      MessageTask task = typeProcessor.processType(type, byteBuffer); //Message로 변환
       task.setClientSocket(socketChannel);
-
       return task;
     } else {
       System.out.println("원하는 만큼 못읽음");
     }
-
     return null;
   }
 }
