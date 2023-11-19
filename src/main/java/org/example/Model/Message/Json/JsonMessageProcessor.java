@@ -1,9 +1,7 @@
 package org.example.Model.Message.Json;
 
 import static org.example.ServerController.output;
-import static org.example.ServerController.shutdownServer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -63,8 +61,6 @@ public class JsonMessageProcessor implements MessageProcessor {
       task.setData(task.getText());
     } else if (task.getType().equals("CSCreateRoom")) {
       task.setData(task.getTitle());
-    } else if (task.getType().equals("CSShutdown")) {
-      shutdownServer();
     }
     return task;
   }

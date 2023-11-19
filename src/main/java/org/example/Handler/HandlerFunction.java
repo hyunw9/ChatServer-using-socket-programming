@@ -1,5 +1,7 @@
 package org.example.Handler;
 
+import com.google.protobuf.Message;
+import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.example.Model.Manager.ChatRoomManager;
@@ -12,6 +14,7 @@ import org.example.Model.Message.MessageTask;
 import org.example.Model.Room;
 import org.example.Model.User;
 import org.example.Model.Manager.UserManager;
+import org.example.ServerController;
 
 public class HandlerFunction {
 
@@ -148,5 +151,9 @@ public class HandlerFunction {
       MessageRes scChatRes = new SCChatRes(msg, user.getName());
       chatRoomManager.broadcastMsgToRoom(room.getId(), scChatRes);
     }
+  }
+
+  public static void on_cs_shutdown(MessageTask task) throws IOException {
+    ServerController.shutdownServer();
   }
 }

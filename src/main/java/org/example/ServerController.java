@@ -25,7 +25,6 @@ import org.example.View.Output;
 import org.example.Worker.ThreadPool;
 
 public class ServerController {
-
   private static MessageProcessor messageProcessor;
 
   private static final Input input = new Input();
@@ -136,14 +135,20 @@ public class ServerController {
   public static void readSocket(SelectionKey key) throws IOException {
     SocketChannel socketChannel = (SocketChannel)key.channel();
 
-    //읽기 가능한 상태가 된다면, messageProcessor의 구현체가 메세지를 읽어서 처리합니다.
-    MessageTask task = messageProcessor.processMessage(socketChannel);
-    if(task.getType().equals("CSShutdown")){
+    lock.lock();
+    try {
+      //읽기 가능한 상태가 된다면, messageProcessor의 구현체가 메세지를 읽어서 처리합니다.
+      MessageTask task = messageProcessor.processMessage(socketChannel);
+      threadPool.submit(task);
+    }finally {
+      lock.unlock();
+    }
+    /*if(task.getType().equals("CSShutdown")){
       shutdownServer();
     }else {
       //threadPool에 Task를 제출합니다.
       threadPool.submit(task);
-    }
+    }*/
   }
 
   private static String getInitialUserNameBuilder(InetSocketAddress userAddr) {
@@ -156,6 +161,5 @@ public class ServerController {
       key.channel().close();
     }
     selector.close();
-    return;
   }
 }

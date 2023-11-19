@@ -1,11 +1,13 @@
 package org.example.Handler;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.example.Model.Manager.ChatRoomManager;
 import org.example.Model.Message.MessageTask;
 import org.example.Model.Manager.UserManager;
+import org.example.ServerController;
 
 public class HandlerMap {
 
@@ -15,7 +17,8 @@ public class HandlerMap {
     this.handlerMap = handlerMap;
   }
 
-  public static HandlerMap addInitialFuncAndCreateMap(ChatRoomManager chatRoomManager, UserManager userManager){
+  public static HandlerMap addInitialFuncAndCreateMap(ChatRoomManager chatRoomManager, UserManager userManager)
+      throws IOException {
     Map<String, Consumer<MessageTask>>  handlerMap = new HashMap<>();
     handlerMap.put("CSName",HandlerFunction::on_cs_name);
     handlerMap.put("CSRooms",HandlerFunction::on_cs_rooms);
@@ -23,6 +26,13 @@ public class HandlerMap {
     handlerMap.put("CSJoinRoom",HandlerFunction::on_cs_join);
     handlerMap.put("CSLeaveRoom",HandlerFunction::on_cs_leave);
     handlerMap.put("CSChat",HandlerFunction::on_cs_chat);
+    handlerMap.put("CSShutdown", (task) -> {
+      try {
+        HandlerFunction.on_cs_shutdown(task);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
     HandlerFunction handlerFunction = new HandlerFunction(chatRoomManager,userManager);
     return new HandlerMap(handlerMap,handlerFunction);
   }
