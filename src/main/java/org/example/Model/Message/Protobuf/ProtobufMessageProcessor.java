@@ -59,9 +59,11 @@ public class ProtobufMessageProcessor implements MessageProcessor {
 
   @Override
   public MessageTask processMessage(SocketChannel socketChannel) throws IOException {
+    MessageTask task = null;
     int bytesRead = 0;
     short length = 0;
     ByteBuffer byteBuffer;
+    Type type = null;
 
     //유저 2명이 동시에 메세지를 보냈을 때, type 뒤에 text 가 아닌,
     // 다른 유저의 type 이 읽히는 것을 방지하기 위하여 동기화 처리합니다.
@@ -70,31 +72,41 @@ public class ProtobufMessageProcessor implements MessageProcessor {
       length = getMessageSize(socketChannel);
       byteBuffer = ByteBuffer.allocate(length);
       bytesRead = socketChannel.read(byteBuffer);  //type을 읽는다.
+
+      if (bytesRead == length) {
+        byteBuffer.flip();
+        type = Type.parseFrom(byteBuffer.array());
+      }
+
+      if (type != null) {
+
+        TypeProcessor typeProcessor = processors.get(type.getType()); //타입에 맞는 프로세서 생성
+
+        length = getMessageSize(socketChannel); //다음 2바이트를 읽어 길이를 확인한다.
+
+        if (length > 0) {
+          byteBuffer = ByteBuffer.allocate(length);
+          bytesRead = socketChannel.read(byteBuffer);
+
+          if (bytesRead == length) {
+            byteBuffer.flip();
+          }
+        } else {
+          // 두 번째 메시지 길이가 0인 경우 byteBuffer를 null로 설정한다.
+          byteBuffer = ByteBuffer.allocate(0);
+        }
+
+        task = typeProcessor.processType(type, byteBuffer); //Message로 변환
+        task.setClientSocket(socketChannel);
+
+
+      } else {
+        System.out.println("원하는 만큼 못읽음");
+      }
+
     } finally {
       lock.unlock();
     }
-
-    if (bytesRead == length) {
-
-      byteBuffer.flip();
-      Type type = Type.parseFrom(byteBuffer.array());
-      TypeProcessor typeProcessor = processors.get(type.getType()); //타입에 맞는 프로세서 생성
-
-      lock.lock();
-      try {
-        length = getMessageSize(socketChannel); //다음 2바이트를 읽어 길이를 확인한다.
-        byteBuffer = ByteBuffer.allocate(length);
-        bytesRead = socketChannel.read(byteBuffer);
-      } finally {
-        lock.unlock();
-      }
-      byteBuffer.flip();
-      MessageTask task = typeProcessor.processType(type, byteBuffer); //Message로 변환
-      task.setClientSocket(socketChannel);
-      return task;
-    } else {
-      System.out.println("원하는 만큼 못읽음");
-    }
-    return null;
+    return task;
   }
 }
